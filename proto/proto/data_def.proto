@@ -1,0 +1,47 @@
+syntax = "proto3";
+package kv_rpc;
+option go_package="DistributedKV/kv_rpc";
+
+
+message RawGet{
+  bytes key=1;
+}
+
+message RawGetResponse{
+  bytes value=1;
+  bool hava=2;
+  string error=3;
+}
+
+message RawPut{
+  bytes key =1;
+  bytes value =2;
+}
+
+message RawPutResponse{
+  bool ok=1;
+  string error=2;
+}
+
+message RawDelete{
+  bytes key=1;
+}
+
+message RawDeleteResponse{
+  bool have=1;
+  string error=2;
+}
+
+message RawScan{
+  bytes start=1;
+  int32 lim=2;
+}
+
+message RawScanResponse{
+  string error=1;
+  repeated KvPair kvs=2;
+}
+message KvPair{
+  bytes key=1;
+  bytes value=2;
+}
