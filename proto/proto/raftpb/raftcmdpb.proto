@@ -1,0 +1,66 @@
+//此pb文件定义的数据结构不用于rpc通信，而是用于内部信息传递
+syntax = "proto3";
+package raftpb;
+option go_package = "AdachiAndShimamura/DistributedKV/proto/gen/raftpb";
+
+import "kvrpcpb/context.proto";
+
+//封装多个读写指令，用于事务场景
+message RaftCmdRequest{
+  RequestHeader header = 1;
+  repeated Request requests = 2;
+}
+message RequestHeader{
+  uint64 regionId = 1;
+}
+
+//单个读写指令
+message Request{
+  RaftCmdType cmd_type = 1;
+  optional GetReq get = 2;
+  optional PutReq put = 3;
+  optional DeleteReq del = 4;
+}
+
+message PutReq{
+  bytes key = 1;
+  bytes  value = 2;
+  string cf = 3;
+}
+message PutResp{}
+
+message GetReq{
+  bytes key = 1;
+  string cf = 2;
+}
+
+message GetResp{
+  bytes val = 1;
+}
+
+message DeleteReq{
+  bytes key = 1;
+  string cf = 2;
+}
+
+message DeleteResp{}
+
+message ResponseHeader{}
+
+message Response{
+  RaftCmdType cmd_type = 1;
+  optional GetResp get = 2;
+  optional PutResp put = 3;
+  optional DeleteResp del = 4;
+}
+
+message RaftCmdResponse{
+  ResponseHeader header = 1;
+  repeated Response resp = 2;
+}
+
+enum RaftCmdType{
+  Get = 0;
+  Put = 1;
+  Delete = 2;
+}

@@ -1,0 +1,13 @@
+syntax="proto3";
+package raftpb;
+option go_package="AdachiAndShimamura/DistributedKV/proto/gen/raftpb";
+
+message Peer{
+  uint64 id=1;
+  uint64 store_id=2;
+}
+
+message RegionEpoch{
+  uint64 conf_ver=1;
+  uint64 version=2;
+}

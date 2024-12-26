@@ -1,0 +1,54 @@
+syntax = "proto3";
+package kvrpcpb;
+option go_package = "AdachiAndShimamura/DistributedKV/proto/gen/kvrpcpb";
+import "kvrpcpb/context.proto";
+
+message RawGet{
+  Context ctx = 1;
+  bytes key = 2;
+  string cf = 3;
+}
+
+message RawGetResponse{
+  bytes value = 1;
+  bool have = 2;
+  string error = 3;
+}
+
+message RawPut{
+  Context ctx = 1;
+  bytes key = 2;
+  bytes value = 3;
+  string cf = 4;
+}
+
+message RawPutResponse{
+  bool ok = 1;
+  string error = 2;
+}
+
+message RawDelete{
+  Context ctx = 1;
+  bytes key = 2;
+  string cf = 3;
+}
+
+message RawDeleteResponse{
+  bool have = 1;
+  string error = 2;
+}
+
+message RawScan{
+  Context ctx = 1;
+  bytes start = 2;
+  int32 lim = 3;
+}
+
+message RawScanResponse{
+  string error = 1;
+  repeated KvPair kvs = 2;
+}
+message KvPair{
+  bytes key = 1;
+  bytes value = 2;
+}

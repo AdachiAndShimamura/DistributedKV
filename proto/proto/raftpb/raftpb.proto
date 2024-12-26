@@ -1,0 +1,68 @@
+syntax = "proto3";
+package raftpb;
+option go_package = "AdachiAndShimamura/DistributedKV/proto/gen/raftpb";
+
+import "raftpb/metapb.proto";
+message RaftMessage{
+  uint64 region_id = 1;
+  raftpb.Peer from_peer = 2;
+  raftpb.Peer to_peer = 3;
+  Message message = 4;
+  raftpb.RegionEpoch region_epoch = 5;
+  bytes start_key = 6;
+  bytes end_key = 7;
+}
+message None{
+
+}
+
+message Message{
+  MessageType msg_type = 1;
+  uint64 to = 2;
+  uint64 from = 3;
+  //当前任期
+  uint64 term = 4;
+  //日志任期
+  uint64 log_term = 5;
+  //日志编号（当follower日志落后时，会向follower同步日志）
+  uint64 index = 6;
+  repeated Entry entries = 7;
+  uint64 commit = 8;
+  bool reject = 9;
+}
+//追加的日志条目
+message Entry{
+  //日志类型:普通日志or节点变更
+  EntryType entry_type = 1;
+  uint64 term = 2;
+  uint64 index = 3;
+  bytes data = 4;
+}
+
+enum EntryType{
+  EntryNormal = 0;
+  EntryConfChange = 1;
+}
+enum MessageType {
+  //本地消息，开始选举
+  MsgHup = 0;
+  //本地消息，心跳
+  MsgBeat = 1;
+  //提议追加数据
+  MsgPropose = 2;
+  //日志追加及响应
+  MsgAppend = 3;
+  MsgAppendResponse = 4;
+  //发起投票及响应
+  MsgRequestVote = 5;
+  MsgRequestVoteResponse = 6;
+  //请求安装快照
+  MsgSnapshot = 7;
+  //心跳消息及响应
+  MsgHeartbeat = 8;
+  MsgHeartbeatResponse = 9;
+  //请求转移领导权
+  MsgTransferLeader = 10;
+  //立即超时
+  MsgTimeoutNow = 11;
+}

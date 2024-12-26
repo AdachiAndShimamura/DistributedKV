@@ -1,3 +1,24 @@
+syntax = "proto3";
+package rpcpb;
+option go_package = "AdachiAndShimamura/DistributedKV/proto/gen/rpcpb";
+
+import "kvrpcpb/rawpb.proto";
+import "raftpb/raftpb.proto";
+service TinyKvRpc{
+  //KV command with mvcc/txn supported
+
+  //RawKV commands
+  rpc RawGet(kvrpcpb.RawGet) returns(kvrpcpb.RawGetResponse);
+  rpc RawPut(kvrpcpb.RawPut) returns(kvrpcpb.RawPutResponse);
+  rpc RawDelete(kvrpcpb.RawDelete) returns(kvrpcpb.RawDeleteResponse);
+  rpc RawScan(kvrpcpb.RawScan) returns(kvrpcpb.RawScanResponse);
+
+  //Raft commands
+  rpc Raft(stream raftpb.RaftMessage) returns(raftpb.None);
+  //Coprocessor
+
+}
+
 //// Serve as a distributed kv database. See the request and response definitions in
 //// kvrpcpb.proto
 //service TinyKv {
@@ -23,16 +44,3 @@
 //  // Coprocessor
 //  rpc Coprocessor(coprocessor.Request) returns (coprocessor.Response) {}
 //}
-syntax = "proto3";
-package kv_rpc;
-option go_package="DistributedKV/kv_rpc";
-
-import "data_def.proto";
-
-service TinyKv{
-  //RawKV commands
-  rpc RawGet(kv_rpc.RawGet) returns(kv_rpc.RawGetResponse);
-  rpc RawPut(kv_rpc.RawPut) returns(kv_rpc.RawPutResponse);
-  rpc RawDelete(kv_rpc.RawDelete) returns(kv_rpc.RawDeleteResponse);
-  rpc RawScan(kv_rpc.RawScan) returns(kv_rpc.RawScanResponse);
-}

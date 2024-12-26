@@ -1,0 +1,10 @@
+syntax = "proto3";
+package kvrpcpb;
+option go_package = "AdachiAndShimamura/DistributedKV/proto/gen/kvrpcpb";
+
+
+
+message Context{
+  uint64 regionId = 1;
+  uint64 regionVersion = 2;
+}
