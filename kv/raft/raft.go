@@ -1,12 +1,10 @@
 package raft
 
 import (
-	"AdachiAndShimamura/DistributedKV/kv/storage"
 	rpc "AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
 	"context"
 	"math/rand/v2"
 	"sync"
-	"time"
 )
 
 type NodeState int
@@ -17,11 +15,11 @@ const (
 	Leader
 )
 
-type Config struct {
-	ID      uint64
-	peers   []uint64
-	storage *storage.Storage
-	applied uint64
+type RaftConfig struct {
+	PeerID   uint64
+	peers    []uint64
+	applied  uint64
+	selfPeer *Peer
 	//heartbeatTick int
 	//electionTick  int
 }
@@ -38,7 +36,7 @@ type Progress struct {
 
 // Raft 结构体，表示Raft节点
 type Raft struct {
-	ID          uint64
+	PeerID      uint64
 	State       NodeState
 	currentTerm uint64
 	votedFor    uint64
@@ -46,33 +44,32 @@ type Raft struct {
 	progress    map[uint64]*Progress
 	mu          sync.Mutex
 	log         *RaftLog
+	parent      *Peer
 
 	//random,150ms-300ms
 	electionTimeout int
-	electionTicker  *time.Ticker
 
 	electionTaskTimeout int
-	electionTaskTimer   *time.Ticker
 
 	//only leader
-	heartbeatSend       int
-	heartbeatSendTicker *time.Ticker
+	heartbeatSend int
 }
 
 // NewRaft 创建一个Raft实例
-func NewRaft(config Config) *Raft {
+func NewRaft(config *RaftConfig, log *RaftLog, parent *Peer) *Raft {
 	progress := make(map[uint64]*Progress)
 	for _, peer := range config.peers {
 		progress[peer] = new(Progress)
 	}
 	electionTimeout := rand.IntN(150) + 150
 	return &Raft{
-		ID:              config.ID,
+		PeerID:          config.PeerID,
 		State:           Follower,
 		currentTerm:     1,
 		votedFor:        0,
 		progress:        progress,
-		log:             NewRaftLog(config.storage, config.applied),
+		log:             log,
+		parent:          parent,
 		electionTimeout: electionTimeout,
 		heartbeatSend:   electionTimeout / 2,
 	}
@@ -135,18 +132,12 @@ func (r *Raft) HandleRaftMessage(data *rpc.RaftMessage) {
 	}
 }
 
-func (r *Raft) StartRaft() {
-	r.electionTicker = time.NewTicker(time.Duration(r.electionTimeout) * time.Millisecond)
-	r.heartbeatTicker = time.NewTicker(time.Duration(r.heartbeatTimeout) * time.Millisecond)
-	ctx := context.Background()
-	for {
-		select {
-		case <-r.electionTicker.C:
-			r.StartElection(ctx)
-		case <-r.heartbeatTicker.C:
+func (r *Raft) HandleCmdMessage(msg) {
 
-		}
-	}
+}
+
+func (r *Raft) StartRaft() {
+
 }
 
 // StartElection 发起选举请求
@@ -169,7 +160,7 @@ func (r *Raft) Heartbeat() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	// 如果是领导者，定期发送心跳
-	if r.state == Leader {
+	if r.State == Leader {
 		// 发送心跳给所有跟随者
 		// 在真实实现中这里需要 RPC
 	}

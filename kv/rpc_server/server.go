@@ -1,4 +1,4 @@
-package kv
+package rpc_server
 
 import (
 	"AdachiAndShimamura/DistributedKV/kv/storage"

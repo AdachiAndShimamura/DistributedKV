@@ -1,4 +1,4 @@
-package rpc
+package rpc_client
 
 import (
 	rpcpb "AdachiAndShimamura/DistributedKV/proto/gen"
@@ -20,7 +20,7 @@ type RaftConn struct {
 	cancel   context.CancelFunc
 }
 
-func newRaftConn(addr string) (*RaftConn, error) {
+func NewRaftConn(addr string) (*RaftConn, error) {
 	cc, err := grpc.NewClient(addr,
 		//禁用TLS
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -76,7 +76,7 @@ func (c *RaftClient) GetConn(id uint64) (*RaftConn, error) {
 		return nil, fmt.Errorf("id:%d not exist", id)
 	}
 	c.mu.RUnlock()
-	newConn, err := newRaftConn(addr)
+	newConn, err := NewRaftConn(addr)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"AdachiAndShimamura/DistributedKV/kv/storage"
+	"AdachiAndShimamura/DistributedKV/kv/common"
 	"sync"
 	"time"
 )
@@ -19,7 +19,7 @@ type TickType uint8
 
 const (
 	HeartBeat TickType = iota
-	electionTimer
+	ElectionTimer
 )
 
 func NewPeerTicker(peerID uint64, baseInterval uint64) *PeerTicker {
@@ -76,7 +76,7 @@ type TickerCore struct {
 	ticker       *time.Ticker
 }
 
-func (t *TickerCore) Start(cfg storage.Config) {
+func (t *TickerCore) Start(cfg *common.ClockConfig) {
 	t.baseInterval = cfg.BaseTimeInternal
 	t.ticker = time.NewTicker(time.Duration(t.baseInterval) * time.Millisecond)
 	ch := t.ticker.C

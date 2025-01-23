@@ -1,13 +1,13 @@
 package raft
 
 import (
-	"AdachiAndShimamura/DistributedKV/kv/storage"
-	raftpb "AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
+	"AdachiAndShimamura/DistributedKV/kv/engine_util"
+	"AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
 )
 
 type RaftLog struct {
 	// storage contains all stable entries since the last snapshot.
-	storage storage.Storage
+	storage *engine_util.Engines
 
 	// committed is the highest log position that is known to be in
 	// stable storage on a quorum of nodes.
@@ -34,7 +34,7 @@ type RaftLog struct {
 	// Your Data Here (2A).
 }
 
-func NewRaftLog(storage storage.Storage, applied uint64) *RaftLog {
+func NewRaftLog(storage *engine_util.Engines, applied uint64) *RaftLog {
 	return &RaftLog{
 		storage:   storage,
 		committed: applied,

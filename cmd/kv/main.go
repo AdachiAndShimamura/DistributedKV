@@ -1,7 +1,7 @@
 package main
 
 import (
-	"AdachiAndShimamura/DistributedKV/kv"
+	"AdachiAndShimamura/DistributedKV/kv/rpc_server"
 	rpcpb "AdachiAndShimamura/DistributedKV/proto/gen"
 	"google.golang.org/grpc"
 	"log"
@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	service := kv.NewServer()
+	service := rpc_server.NewServer()
 	rpcpb.RegisterTinyKvRpcServer(s, service)
 	err = s.Serve(lis)
 	if err != nil {

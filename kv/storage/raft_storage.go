@@ -1,12 +1,15 @@
 package storage
 
 import (
+	. "AdachiAndShimamura/DistributedKV/kv/common"
 	"AdachiAndShimamura/DistributedKV/kv/engine_util"
-	"AdachiAndShimamura/DistributedKV/kv/storage/store"
+	"AdachiAndShimamura/DistributedKV/kv/store"
 	rpcpb "AdachiAndShimamura/DistributedKV/proto/gen"
 	"AdachiAndShimamura/DistributedKV/proto/gen/kvrpcpb"
 	"AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
+	"github.com/pkg/errors"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -20,8 +23,29 @@ type RaftStorage struct {
 	router  *store.Router
 }
 
+func NewRaftStorage(config *Config) *RaftStorage {
+	dbPath := config.DBPath
+	raftPath := filepath.Join(dbPath, "raft")
+	kvPath := filepath.Join(dbPath, "kv")
+	os.Mkdir(raftPath, 0700)
+	os.Mkdir(kvPath, 0700)
+	storage := engine_util.NewEngines(raftPath, kvPath)
+	return &RaftStorage{
+		storage: storage,
+		config:  config,
+	}
+}
 func (s *RaftStorage) Start() error {
-
+	router := store.NewRouter()
+	s.router = router
+	s.store = store.CreateRaftStore(s.config, 1111, router)
+	go func() {
+		err := s.store.Start()
+		if err != nil {
+			log.Fatalln(errors.Wrap(err, "failed to start store"))
+		}
+	}()
+	return nil
 }
 
 func (s *RaftStorage) Stop() error {
@@ -64,31 +88,18 @@ func (s *RaftStorage) Write(ctx *kvrpcpb.Context, batch []Modify) error {
 		Header:   header,
 		Requests: cmds,
 	}
-	cb := store.NewCallBack()
+	cb := NewCallBack()
 	err := s.HandleCmdMessage(req, cb)
 	if err != nil {
 		return err
 	}
-	return store.CheckCmdResp(cb.WaitResp(), len(cmds))
+	return CheckCmdResp(cb.WaitResp(), len(cmds))
 }
 
 // Reader 存储引擎的读接口，会阻塞等待raft peer进行状态检查
 func (s *RaftStorage) Reader(ctx *kvrpcpb.Context) (StorageReader, error) {
 	//TODO implement me
 	panic("implement me")
-}
-
-func NewRaftStorage(config *Config) *RaftStorage {
-	dbPath := config.DBPath
-	raftPath := filepath.Join(dbPath, "raft")
-	kvPath := filepath.Join(dbPath, "kv")
-	os.Mkdir(raftPath, 0700)
-	os.Mkdir(kvPath, 0700)
-	storage := engine_util.NewEngines(raftPath, kvPath)
-	return &RaftStorage{
-		storage: storage,
-		config:  config,
-	}
 }
 
 func (s *RaftStorage) HandleRaftMessage(stream *rpcpb.TinyKvRpc_RaftServer) error {
@@ -104,6 +115,6 @@ func (s *RaftStorage) HandleRaftMessage(stream *rpcpb.TinyKvRpc_RaftServer) erro
 	}
 }
 
-func (s *RaftStorage) HandleCmdMessage(cmd *raftpb.RaftCmdRequest, cb *store.CallBack) error {
+func (s *RaftStorage) HandleCmdMessage(cmd *raftpb.RaftCmdRequest, cb *CallBack) error {
 	return s.router.SendRaftCmdMessage(cmd, cb)
 }

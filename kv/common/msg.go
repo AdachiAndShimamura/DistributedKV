@@ -1,6 +1,9 @@
-package store
+package common
 
-import "AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
+import (
+	"AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
+	"github.com/pkg/errors"
+)
 
 type MsgType int64
 
@@ -55,6 +58,34 @@ func NewPeerMsg(tp MsgType, regionID uint64, data interface{}) *Msg {
 }
 
 type RaftCmdMsg struct {
-	cb  *CallBack
-	req *raftpb.RaftCmdRequest
+	Cb  *CallBack
+	Req *raftpb.RaftCmdRequest
+}
+
+type CallBack struct {
+	done chan struct{}
+	resp *raftpb.RaftCmdResponse
+}
+
+func NewCallBack() *CallBack {
+	return &CallBack{
+		done: make(chan struct{}, 1),
+		resp: &raftpb.RaftCmdResponse{},
+	}
+}
+
+func (cb *CallBack) Done() {
+	cb.done <- struct{}{}
+}
+
+func (cb *CallBack) WaitResp() *raftpb.RaftCmdResponse {
+	<-cb.done
+	return cb.resp
+}
+
+func CheckCmdResp(resp *raftpb.RaftCmdResponse, reqCount int) error {
+	if resp.Header == nil || len(resp.Resp) != reqCount {
+		return errors.New("resp error")
+	}
+	return nil
 }

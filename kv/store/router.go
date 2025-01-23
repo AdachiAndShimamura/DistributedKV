@@ -1,6 +1,7 @@
 package store
 
 import (
+	. "AdachiAndShimamura/DistributedKV/kv/common"
 	"AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
 	"github.com/pkg/errors"
 	"sync"
@@ -40,8 +41,8 @@ func (r *Router) SendRaftMessage(msg *raftpb.RaftMessage) {
 
 func (r *Router) SendRaftCmdMessage(msg *raftpb.RaftCmdRequest, cb *CallBack) error {
 	cmd := &RaftCmdMsg{
-		cb:  cb,
-		req: msg,
+		Cb:  cb,
+		Req: msg,
 	}
 	return r.send(msg.Header.RegionId, NewStoreMsg(MsgTypeRaftCmd, msg.Header.RegionId, cmd))
 }
