@@ -9,6 +9,8 @@ type RaftLog struct {
 	// storage contains all stable entries since the last snapshot.
 	storage *engine_util.Engines
 
+	index uint64
+
 	// committed is the highest log position that is known to be in
 	// stable storage on a quorum of nodes.
 	committed uint64
@@ -23,8 +25,9 @@ type RaftLog struct {
 	// Everytime handling `Ready`, the unstabled logs will be included.
 	stabled uint64
 
+	currentTerm uint64
+
 	// all entries that have not yet compact.
-	//已经applied，但是还没有持久化存储到硬盘中
 	entries []raftpb.Entry
 
 	//// the incoming unstable snapshot, if any.

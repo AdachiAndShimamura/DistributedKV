@@ -45,17 +45,17 @@ type Msg struct {
 	Data     interface{}
 }
 
-//func NewMsg(tp MsgType, regionId uint64, data interface{}) *Msg {
-//	return &Msg{Type: tp, RegionID: regionId, Data: data}
+func NewMsg(tp MsgType, regionId uint64, data interface{}) *Msg {
+	return &Msg{Type: tp, RegionID: regionId, Data: data}
+}
+
+//func NewStoreMsg(tp MsgType, regionID uint64, data interface{}) *Msg {
+//	return &Msg{Type: tp, RegionID: regionID, Data: data}
 //}
-
-func NewStoreMsg(tp MsgType, regionID uint64, data interface{}) *Msg {
-	return &Msg{Type: tp, RegionID: regionID, Data: data}
-}
-
-func NewPeerMsg(tp MsgType, regionID uint64, data interface{}) *Msg {
-	return &Msg{Type: tp, RegionID: regionID, Data: data}
-}
+//
+//func NewPeerMsg(tp MsgType, regionID uint64, data interface{}) *Msg {
+//	return &Msg{Type: tp, RegionID: regionID, Data: data}
+//}
 
 type RaftCmdMsg struct {
 	Cb  *CallBack

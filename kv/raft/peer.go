@@ -6,6 +6,7 @@ import (
 	"AdachiAndShimamura/DistributedKV/kv/rpc_client"
 	"AdachiAndShimamura/DistributedKV/kv/utils"
 	"AdachiAndShimamura/DistributedKV/proto/gen/raftpb"
+	"log/slog"
 )
 
 type PeerMetaData struct {
@@ -22,12 +23,14 @@ type Peer struct {
 	raft     *Raft
 	log      *RaftLog
 	client   *rpc_client.RaftClient
-	msgs     chan *Msg
-	tickerCh chan utils.TickType
+	msgCh    chan *Msg
+	tickerCh chan utils.ClockType
 	ticker   *utils.PeerTicker
 }
 
 func NewPeer(cfg *PeerConfig, peerID uint64, regionID uint64) *Peer {
+	ch := make(chan utils.ClockType)
+	ticker := utils.NewPeerTicker(peerID, cfg.ClockCfg, ch)
 	peer := &Peer{
 		peerID:   peerID,
 		regionID: regionID,
@@ -35,61 +38,90 @@ func NewPeer(cfg *PeerConfig, peerID uint64, regionID uint64) *Peer {
 			region:   cfg.Region,
 			clockCfg: cfg.ClockCfg,
 		},
-		tickerCh: make(chan utils.TickType, 2),
+		ticker:   ticker,
+		tickerCh: ch,
 	}
 	log := NewRaftLog(cfg.Storage, 0)
 	raft := NewRaft(&RaftConfig{
-		PeerID:  0,
-		peers:   nil,
-		applied: 0,
-	}, log, peer)
+		peerID:   peerID,
+		regionID: regionID,
+		peers:    nil,
+		applied:  0,
+	}, log, peer, ticker)
 	peer.log = log
 	peer.raft = raft
 	return peer
 }
-func (p *Peer) SendRaftMessage(peerID uint64,msg *raftpb.Message) error {
-	return p.client.Send(peerID,&raftpb.RaftMessage{
-		RegionId:    0,
-		FromPeer:    &raftpb.Peer{
-			Id:      peerID,
+func (p *Peer) SendRaftMessage(toPeer uint64, msg *raftpb.Message) {
+	err := p.client.Send(toPeer, &raftpb.RaftMessage{
+		RegionId: 0,
+		FromPeer: &raftpb.Peer{
+			Id:      p.peerID,
 			StoreId: p.meta.region.RegionID,
 		},
-		ToPeer:      nil,
-		Message:     nil,
+		ToPeer: &raftpb.Peer{
+			Id: toPeer, StoreId: p.meta.region.RegionID,
+		},
+		Message:     msg,
 		RegionEpoch: nil,
 		StartKey:    nil,
 		EndKey:      nil,
 	})
+	if err != nil {
+		slog.Warn("send raft message to peer failed, peerID: %d, err: %v", p.peerID, err)
+	}
 }
 
 func (p *Peer) Start() {
 	p.raft.StartRaft()
-	p.ticker.Register(utils.ElectionTimer, p.peerID, func() {
-		p.tickerCh <- utils.ElectionTimer
-	})
 	for {
 		select {
-		case msg := <-p.msgs:
+		case msg := <-p.msgCh:
 			{
 				switch msg.Type {
 				case MsgTypeRaftCmd:
 					{
-						p.raft.HandleRaftMessage((*raftpb.RaftMessage)(msg.Data))
+						raftMsg, ok := msg.Data.(raftpb.RaftMessage)
+						if !ok {
+							slog.Warn("raft msg err")
+						}
+						go p.raft.HandleRaftMessage(&raftMsg)
 					}
 				case MsgTypeRaftMessage:
 					{
-						p.raft.
+						cmdMsg, ok := msg.Data.(RaftCmdMsg)
+						if !ok {
+							slog.Warn("raft cmd msg err")
+						}
+						go p.raft.HandleCmdMessage(&cmdMsg)
 					}
 				}
 			}
 		case msgType := <-p.tickerCh:
 			{
 				switch msgType {
-				case utils.ElectionTimer:
-				case utils.HeartBeat:
-
+				case utils.ElectionTimerClock:
+					go p.raft.HandleRaftMessage(&raftpb.RaftMessage{
+						Message: &raftpb.Message{
+							MsgType: raftpb.MessageType_MsgHup,
+						},
+					})
+				case utils.HeartBeatClock:
+					go p.raft.HandleRaftMessage(&raftpb.RaftMessage{
+						Message: &raftpb.Message{
+							MsgType: raftpb.MessageType_MsgBeat,
+						},
+					})
 				}
 			}
 		}
 	}
+}
+
+func (p *Peer) ResetClock(tp utils.ClockType) {
+	p.ticker.Reset(tp)
+}
+
+func (p *Peer) Stop() {
+	p.raft.peer = nil
 }

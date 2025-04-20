@@ -1,6 +1,7 @@
 package rpc_server
 
 import (
+	"AdachiAndShimamura/DistributedKV/kv/common"
 	"AdachiAndShimamura/DistributedKV/kv/storage"
 	rpcpb "AdachiAndShimamura/DistributedKV/proto/gen"
 	"log/slog"
@@ -11,7 +12,7 @@ type Server struct {
 	rpcpb.UnimplementedTinyKvRpcServer
 }
 
-func NewServer(config *storage.Config) *Server {
+func NewServer(config *common.Config) *Server {
 	s := storage.NewRaftStorage(config)
 	return &Server{
 		storage: s,

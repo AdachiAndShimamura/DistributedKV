@@ -34,8 +34,8 @@ func (r *Router) sendStore(msg *Msg) {
 
 func (r *Router) SendRaftMessage(msg *raftpb.RaftMessage) {
 	id := msg.RegionId
-	if err := r.send(id, NewStoreMsg(MsgTypeRaftMessage, id, msg)); err != nil {
-		r.sendStore(NewStoreMsg(MsgTypeStoreRaftMessage, id, msg))
+	if err := r.send(id, NewMsg(MsgTypeRaftMessage, id, msg)); err != nil {
+		r.sendStore(NewMsg(MsgTypeStoreRaftMessage, id, msg))
 	}
 }
 
@@ -44,5 +44,5 @@ func (r *Router) SendRaftCmdMessage(msg *raftpb.RaftCmdRequest, cb *CallBack) er
 		Cb:  cb,
 		Req: msg,
 	}
-	return r.send(msg.Header.RegionId, NewStoreMsg(MsgTypeRaftCmd, msg.Header.RegionId, cmd))
+	return r.send(msg.Header.RegionId, NewMsg(MsgTypeRaftCmd, msg.Header.RegionId, cmd))
 }

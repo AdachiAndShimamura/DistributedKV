@@ -6,7 +6,11 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/grpc v1.68.0
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.35.2 // indirect
+)
+
+require (
+	github.com/pkg/errors v0.9.1
 )
 
 require (
@@ -20,16 +24,16 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/ncw/directio v1.0.4 // indirect
 	github.com/ngaut/log v0.0.0-20180314031856-b8e36e7ba5ac // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pingcap/errors v0.11.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
 	github.com/prometheus/common v0.4.1 // indirect
 	github.com/prometheus/procfs v0.0.2 // indirect
-	github.com/robfig/cron/v3 v3.0.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.20.0 // indirect

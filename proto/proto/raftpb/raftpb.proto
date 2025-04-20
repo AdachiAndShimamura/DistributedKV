@@ -48,20 +48,20 @@ enum MessageType {
   MsgHup = 0;
   //本地消息，心跳
   MsgBeat = 1;
-  //提议追加数据
+  //本地消息，提议追加数据（仅由leader处理）
   MsgPropose = 2;
-  //日志追加及响应
+  //日志追加及响应leader->follower&candidate->leader
   MsgAppend = 3;
   MsgAppendResponse = 4;
-  //发起投票及响应
+  //发起投票及响应candidate->leader&follower->candidate
   MsgRequestVote = 5;
   MsgRequestVoteResponse = 6;
   //请求安装快照
   MsgSnapshot = 7;
-  //心跳消息及响应
+  //心跳消息及响应leader->follower&candidate->leader
   MsgHeartbeat = 8;
   MsgHeartbeatResponse = 9;
-  //请求转移领导权
+  //请求转移领导权others->leader
   MsgTransferLeader = 10;
   //立即超时
   MsgTimeoutNow = 11;

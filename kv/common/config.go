@@ -6,6 +6,7 @@ type ClockConfig struct {
 	HeartbeatInterval    uint64
 	ElectionTimeoutStart uint64
 	ElectionTimeoutEnd   uint64
+	VoteTimeout          uint64
 	BaseTimeInternal     uint64
 }
 
@@ -13,11 +14,7 @@ type Config struct {
 	//存储位置
 	DBPath string
 
-	//
-	HeartbeatInterval    uint64
-	ElectionTimeoutStart uint64
-	ElectionTimeoutEnd   uint64
-	BaseTimeInternal     uint64
+	Clock ClockConfig
 }
 
 type PeerConfig struct {
